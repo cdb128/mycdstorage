@@ -59,6 +59,41 @@
     const cdForm = document.getElementById('cdForm');
     const cdList = document.getElementById('cdList');
 
+    // Load existing CDs from local storage
+    function loadCDs() {
+        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
+        cds.forEach(cd => {
+            displayCD(cd.title, cd.artist, cd.genre, cd.year, cd.cover);
+        });
+    }
+
+    // Display CD details in the list
+    function displayCD(title, artist, genre, year, cover) {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <img src="${cover}" alt="${title} cover" />
+            <div>
+                <strong>${title}</strong> by ${artist} (${genre}, ${year}) 
+                <button class="delete">Delete</button>
+            </div>
+        `;
+
+        // Add delete functionality
+        li.querySelector('.delete').addEventListener('click', function() {
+            cdList.removeChild(li);
+            removeCDFromStorage(title);
+        });
+
+        cdList.appendChild(li);
+    }
+
+    // Remove CD from local storage
+    function removeCDFromStorage(title) {
+        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
+        const updatedCDs = cds.filter(cd => cd.title !== title);
+        localStorage.setItem('cdCollection', JSON.stringify(updatedCDs));
+    }
+
     cdForm.addEventListener('submit', function(event) {
         event.preventDefault();
 
@@ -69,34 +104,34 @@
         const coverInput = document.getElementById('cover');
         const coverFile = coverInput.files[0];
 
-        // Create a FileReader to read the uploaded image as a Data URL
         const reader = new FileReader();
         reader.onload = function(e) {
             const imgSrc = e.target.result; // Get the image source
 
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <img src="${imgSrc}" alt="${title} cover" />
-                <div>
-                    <strong>${title}</strong> by ${artist} (${genre}, ${year}) 
-                    <button class="delete">Delete</button>
-                </div>
-            `;
-            
-            // Add delete functionality
-            li.querySelector('.delete').addEventListener('click', function() {
-                cdList.removeChild(li);
-            });
+            // Display the new CD
+            displayCD(title, artist, genre, year, imgSrc);
 
-            cdList.appendChild(li);
+            // Save CD to local storage
+            saveCDToStorage(title, artist, genre, year, imgSrc);
+
             cdForm.reset(); // Clear the form
         };
 
-        // Read the uploaded image as a Data URL
         if (coverFile) {
             reader.readAsDataURL(coverFile);
         }
     });
+
+    // Save CD to local storage
+    function saveCDToStorage(title, artist, genre, year, cover) {
+        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
+        cds.push({ title, artist, genre, year, cover });
+        localStorage.setItem('cdCollection', JSON.stringify(cds));
+    }
+
+    // Load CDs when the page is loaded
+    window.onload = loadCDs;
+
 </script>
 
 </body>
