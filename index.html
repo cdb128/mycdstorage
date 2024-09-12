@@ -12,6 +12,7 @@
             align-items: center;
             padding: 20px;
             background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
         }
         header, footer {
             width: 100%;
@@ -77,11 +78,100 @@
     <h1>My CD Storage</h1>
 </header>
 
-<!-- Your form and list elements go here -->
+<form id="cdForm">
+    <input type="text" id="title" placeholder="CD Title" required>
+    <input type="text" id="artist" placeholder="Artist" required>
+    <input type="text" id="genre" placeholder="Genre" required>
+    <input type="text" id="year" placeholder="Year" required>
+    <input type="file" id="cover" accept="image/*" required>
+    <button type="submit"><i class="fas fa-plus"></i> Add CD</button>
+</form>
+
+<h2>Your CD Collection</h2>
+<ul id="cdList"></ul>
 
 <footer>
     <p>&copy; 2024 My CD Collection</p>
 </footer>
+
+<script>
+    const cdForm = document.getElementById('cdForm');
+    const cdList = document.getElementById('cdList');
+
+    // Load existing CDs from local storage
+    function loadCDs() {
+        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
+        cds.forEach(cd => {
+            displayCD(cd.title, cd.artist, cd.genre, cd.year, cd.cover);
+        });
+    }
+
+    // Display CD details in the list
+    function displayCD(title, artist, genre, year, cover) {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <img src="${cover}" alt="${title} cover" />
+            <div>
+                <strong>${title}</strong> by ${artist} (${genre}, ${year}) 
+                <button class="delete"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+        `;
+
+        // Add delete functionality
+        li.querySelector('.delete').addEventListener('click', function() {
+            cdList.removeChild(li);
+            removeCDFromStorage(title);
+        });
+
+        cdList.appendChild(li);
+    }
+
+    // Remove CD from local storage
+    function removeCDFromStorage(title) {
+        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
+        const updatedCDs = cds.filter(cd => cd.title !== title);
+        localStorage.setItem('cdCollection', JSON.stringify(updatedCDs));
+    }
+
+    cdForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const title = document.getElementById('title').value;
+        const artist = document.getElementById('artist').value;
+        const genre = document.getElementById('genre').value;
+        const year = document.getElementById('year').value;
+        const coverInput = document.getElementById('cover');
+        const coverFile = coverInput.files[0];
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imgSrc = e.target.result; // Get the image source
+
+            // Display the new CD
+            displayCD(title, artist, genre, year, imgSrc);
+
+            // Save CD to local storage
+            saveCDToStorage(title, artist, genre, year, imgSrc);
+
+            cdForm.reset(); // Clear the form
+        };
+
+        if (coverFile) {
+            reader.readAsDataURL(coverFile);
+        }
+    });
+
+    // Save CD to local storage
+    function saveCDToStorage(title, artist, genre, year, cover) {
+        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
+        cds.push({ title, artist, genre, year, cover });
+        localStorage.setItem('cdCollection', JSON.stringify(cds));
+    }
+
+    // Load CDs when the page is loaded
+    window.onload = loadCDs;
+
+</script>
 
 </body>
 </html>
