@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CD Storage</title>
+    <title>CD Collection Manager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 20px;
+            height: 100vh;
             background-color: #f4f4f4;
             font-family: Arial, sans-serif;
+            margin: 0;
         }
         header, footer {
             width: 100%;
@@ -21,16 +21,30 @@
             background-color: #4CAF50;
             color: white;
         }
+        .main {
+            display: flex;
+            flex: 1;
+        }
+        #inputPanel {
+            width: 30%;
+            padding: 20px;
+            background-color: white;
+            border-right: 1px solid #ddd;
+        }
+        #collectionPanel {
+            width: 70%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+        }
         form {
             display: flex;
             flex-direction: column;
-            width: 100%;
-            max-width: 400px;
             margin-bottom: 20px;
         }
         input, button {
             padding: 10px;
-            margin: 5px;
+            margin: 5px 0;
             border-radius: 5px;
             border: 1px solid #ccc;
         }
@@ -43,52 +57,89 @@
         button:hover {
             background-color: #45a049;
         }
-        ul {
+        .tree {
             list-style-type: none;
             padding: 0;
-            width: 100%;
-            max-width: 400px;
         }
-        li {
-            background: #fff;
-            margin: 10px 0;
+        .tree-item {
+            margin: 5px 0;
+            cursor: pointer;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .tree-item:hover {
+            background-color: #f0f0f0;
+        }
+        #cdDetails {
+            margin-top: 20px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: box-shadow 0.3s;
-        }
-        li:hover {
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            background-color: #f9f9f9;
         }
         img {
             max-width: 100px;
             max-height: 100px;
             margin-right: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .search-bar {
+            margin: 10px 0;
+        }
+        .search-bar input {
+            width: calc(100% - 22px);
+        }
+        .sorting {
+            margin: 10px 0;
+        }
+        .sorting select {
+            padding: 10px;
+            width: 100%;
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>My CD Storage</h1>
+    <h1>CD Collection Manager</h1>
 </header>
 
-<form id="cdForm">
-    <input type="text" id="title" placeholder="CD Title" required>
-    <input type="text" id="artist" placeholder="Artist" required>
-    <input type="text" id="genre" placeholder="Genre" required>
-    <input type="text" id="year" placeholder="Year" required>
-    <input type="file" id="cover" accept="image/*" required>
-    <button type="submit"><i class="fas fa-plus"></i> Add CD</button>
-</form>
+<div class="main">
+    <div id="inputPanel">
+        <form id="cdForm">
+            <input type="text" id="title" placeholder="CD Title" required>
+            <input type="text" id="artist" placeholder="Artist" required>
+            <input type="text" id="genre" placeholder="Genre" required>
+            <input type="text" id="year" placeholder="Year" required>
+            <input type="file" id="cover" accept="image/*" required>
+            <button type="submit"><i class="fas fa-plus"></i> Add CD</button>
+        </form>
 
-<h2>Your CD Collection</h2>
-<ul id="cdList"></ul>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search CDs..." onkeyup="searchCDs()">
+        </div>
+
+        <div class="sorting">
+            <select id="sortSelect" onchange="sortCDs()">
+                <option value="">Sort by</option>
+                <option value="title">Title</option>
+                <option value="artist">Artist</option>
+                <option value="year">Year</option>
+            </select>
+        </div>
+
+        <div id="cdDetails">
+            <h2>CD Details</h2>
+            <div id="detailsContent">Select a CD to see details.</div>
+        </div>
+    </div>
+
+    <div id="collectionPanel">
+        <h2>Your CD Collection</h2>
+        <ul id="cdList" class="tree"></ul>
+    </div>
+</div>
 
 <footer>
     <p>&copy; 2024 My CD Collection</p>
@@ -97,40 +148,45 @@
 <script>
     const cdForm = document.getElementById('cdForm');
     const cdList = document.getElementById('cdList');
+    const detailsContent = document.getElementById('detailsContent');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
 
     // Load existing CDs from local storage
     function loadCDs() {
         const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
         cds.forEach(cd => {
-            displayCD(cd.title, cd.artist, cd.genre, cd.year, cd.cover);
+            displayCD(cd);
         });
     }
 
-    // Display CD details in the list
-    function displayCD(title, artist, genre, year, cover) {
+    // Display CD names in the collection tree
+    function displayCD(cd) {
         const li = document.createElement('li');
-        li.innerHTML = `
-            <img src="${cover}" alt="${title} cover" />
-            <div>
-                <strong>${title}</strong> by ${artist} (${genre}, ${year}) 
-                <button class="delete"><i class="fas fa-trash"></i> Delete</button>
-            </div>
-        `;
+        li.textContent = cd.title;
+        li.className = 'tree-item';
+        li.dataset.artist = cd.artist;
+        li.dataset.genre = cd.genre;
+        li.dataset.year = cd.year;
+        li.dataset.cover = cd.cover;
 
-        // Add delete functionality
-        li.querySelector('.delete').addEventListener('click', function() {
-            cdList.removeChild(li);
-            removeCDFromStorage(title);
+        // Add click functionality to show details
+        li.addEventListener('click', function() {
+            showDetails(cd);
         });
 
         cdList.appendChild(li);
     }
 
-    // Remove CD from local storage
-    function removeCDFromStorage(title) {
-        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
-        const updatedCDs = cds.filter(cd => cd.title !== title);
-        localStorage.setItem('cdCollection', JSON.stringify(updatedCDs));
+    // Show CD details
+    function showDetails(cd) {
+        detailsContent.innerHTML = `
+            <img src="${cd.cover}" alt="${cd.title} cover" />
+            <p><strong>Title:</strong> ${cd.title}</p>
+            <p><strong>Artist:</strong> ${cd.artist}</p>
+            <p><strong>Genre:</strong> ${cd.genre}</p>
+            <p><strong>Year:</strong> ${cd.year}</p>
+        `;
     }
 
     cdForm.addEventListener('submit', function(event) {
@@ -146,12 +202,13 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             const imgSrc = e.target.result; // Get the image source
+            const cd = { title, artist, genre, year, cover: imgSrc };
 
-            // Display the new CD
-            displayCD(title, artist, genre, year, imgSrc);
+            // Display the new CD in the tree
+            displayCD(cd);
 
             // Save CD to local storage
-            saveCDToStorage(title, artist, genre, year, imgSrc);
+            saveCDToStorage(cd);
 
             cdForm.reset(); // Clear the form
         };
@@ -162,10 +219,33 @@
     });
 
     // Save CD to local storage
-    function saveCDToStorage(title, artist, genre, year, cover) {
+    function saveCDToStorage(cd) {
         const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
-        cds.push({ title, artist, genre, year, cover });
+        cds.push(cd);
         localStorage.setItem('cdCollection', JSON.stringify(cds));
+    }
+
+    // Search CDs
+    function searchCDs() {
+        const query = searchInput.value.toLowerCase();
+        const items = cdList.getElementsByClassName('tree-item');
+        
+        Array.from(items).forEach(item => {
+            const title = item.textContent.toLowerCase();
+            item.style.display = title.includes(query) ? '' : 'none';
+        });
+    }
+
+    // Sort CDs
+    function sortCDs() {
+        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
+        const sortBy = sortSelect.value;
+
+        if (sortBy) {
+            cds.sort((a, b) => a[sortBy].localeCompare(b[sortBy]));
+            cdList.innerHTML = ''; // Clear the list
+            cds.forEach(cd => displayCD(cd)); // Re-display sorted CDs
+        }
     }
 
     // Load CDs when the page is loaded
