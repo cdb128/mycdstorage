@@ -4,135 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CD Storage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
             background-color: #f4f4f4;
         }
+        header, footer {
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+        }
         form {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 400px;
             margin-bottom: 20px;
         }
         input, button {
             padding: 10px;
             margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
         }
         ul {
             list-style-type: none;
             padding: 0;
+            width: 100%;
+            max-width: 400px;
         }
         li {
             background: #fff;
-            margin: 5px 0;
+            margin: 10px 0;
             padding: 10px;
             border: 1px solid #ddd;
+            border-radius: 5px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            transition: box-shadow 0.3s;
+        }
+        li:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
         img {
-            max-width: 100px; /* Limit image size */
+            max-width: 100px;
+            max-height: 100px;
             margin-right: 10px;
-        }
-        button.delete {
-            background: red;
-            color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
 <body>
 
-<h1>CD Storage</h1>
-<form id="cdForm">
-    <input type="text" id="title" placeholder="CD Title" required>
-    <input type="text" id="artist" placeholder="Artist" required>
-    <input type="text" id="genre" placeholder="Genre" required>
-    <input type="text" id="year" placeholder="Year" required>
-    <input type="file" id="cover" accept="image/*" required>
-    <button type="submit">Add CD</button>
-</form>
+<header>
+    <h1>My CD Storage</h1>
+</header>
 
-<h2>Your CD Collection</h2>
-<ul id="cdList"></ul>
+<!-- Your form and list elements go here -->
 
-<script>
-    const cdForm = document.getElementById('cdForm');
-    const cdList = document.getElementById('cdList');
-
-    // Load existing CDs from local storage
-    function loadCDs() {
-        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
-        cds.forEach(cd => {
-            displayCD(cd.title, cd.artist, cd.genre, cd.year, cd.cover);
-        });
-    }
-
-    // Display CD details in the list
-    function displayCD(title, artist, genre, year, cover) {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <img src="${cover}" alt="${title} cover" />
-            <div>
-                <strong>${title}</strong> by ${artist} (${genre}, ${year}) 
-                <button class="delete">Delete</button>
-            </div>
-        `;
-
-        // Add delete functionality
-        li.querySelector('.delete').addEventListener('click', function() {
-            cdList.removeChild(li);
-            removeCDFromStorage(title);
-        });
-
-        cdList.appendChild(li);
-    }
-
-    // Remove CD from local storage
-    function removeCDFromStorage(title) {
-        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
-        const updatedCDs = cds.filter(cd => cd.title !== title);
-        localStorage.setItem('cdCollection', JSON.stringify(updatedCDs));
-    }
-
-    cdForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const title = document.getElementById('title').value;
-        const artist = document.getElementById('artist').value;
-        const genre = document.getElementById('genre').value;
-        const year = document.getElementById('year').value;
-        const coverInput = document.getElementById('cover');
-        const coverFile = coverInput.files[0];
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const imgSrc = e.target.result; // Get the image source
-
-            // Display the new CD
-            displayCD(title, artist, genre, year, imgSrc);
-
-            // Save CD to local storage
-            saveCDToStorage(title, artist, genre, year, imgSrc);
-
-            cdForm.reset(); // Clear the form
-        };
-
-        if (coverFile) {
-            reader.readAsDataURL(coverFile);
-        }
-    });
-
-    // Save CD to local storage
-    function saveCDToStorage(title, artist, genre, year, cover) {
-        const cds = JSON.parse(localStorage.getItem('cdCollection')) || [];
-        cds.push({ title, artist, genre, year, cover });
-        localStorage.setItem('cdCollection', JSON.stringify(cds));
-    }
-
-    // Load CDs when the page is loaded
-    window.onload = loadCDs;
-
-</script>
+<footer>
+    <p>&copy; 2024 My CD Collection</p>
+</footer>
 
 </body>
 </html>
