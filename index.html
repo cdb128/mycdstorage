@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CD Storage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #fff;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+        button.delete {
+            background: red;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<h1>CD Storage</h1>
+<form id="cdForm">
+    <input type="text" id="title" placeholder="CD Title" required>
+    <input type="text" id="artist" placeholder="Artist" required>
+    <input type="text" id="genre" placeholder="Genre" required>
+    <input type="text" id="year" placeholder="Year" required>
+    <button type="submit">Add CD</button>
+</form>
+
+<h2>Your CD Collection</h2>
+<ul id="cdList"></ul>
+
+<script>
+    const cdForm = document.getElementById('cdForm');
+    const cdList = document.getElementById('cdList');
+
+    cdForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const title = document.getElementById('title').value;
+        const artist = document.getElementById('artist').value;
+        const genre = document.getElementById('genre').value;
+        const year = document.getElementById('year').value;
+
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${title}</strong> by ${artist} (${genre}, ${year}) <button class="delete">Delete</button>`;
+        
+        // Add delete functionality
+        li.querySelector('.delete').addEventListener('click', function() {
+            cdList.removeChild(li);
+        });
+
+        cdList.appendChild(li);
+        
+        // Clear the form
+        cdForm.reset();
+    });
+</script>
+
+</body>
+</html>
