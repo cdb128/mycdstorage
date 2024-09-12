@@ -27,7 +27,12 @@
             padding: 10px;
             border: 1px solid #ddd;
             display: flex;
+            align-items: center;
             justify-content: space-between;
+        }
+        img {
+            max-width: 100px; /* Limit image size */
+            margin-right: 10px;
         }
         button.delete {
             background: red;
@@ -43,6 +48,7 @@
     <input type="text" id="artist" placeholder="Artist" required>
     <input type="text" id="genre" placeholder="Genre" required>
     <input type="text" id="year" placeholder="Year" required>
+    <input type="file" id="cover" accept="image/*" required>
     <button type="submit">Add CD</button>
 </form>
 
@@ -60,19 +66,36 @@
         const artist = document.getElementById('artist').value;
         const genre = document.getElementById('genre').value;
         const year = document.getElementById('year').value;
+        const coverInput = document.getElementById('cover');
+        const coverFile = coverInput.files[0];
 
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>${title}</strong> by ${artist} (${genre}, ${year}) <button class="delete">Delete</button>`;
-        
-        // Add delete functionality
-        li.querySelector('.delete').addEventListener('click', function() {
-            cdList.removeChild(li);
-        });
+        // Create a FileReader to read the uploaded image as a Data URL
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imgSrc = e.target.result; // Get the image source
 
-        cdList.appendChild(li);
-        
-        // Clear the form
-        cdForm.reset();
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <img src="${imgSrc}" alt="${title} cover" />
+                <div>
+                    <strong>${title}</strong> by ${artist} (${genre}, ${year}) 
+                    <button class="delete">Delete</button>
+                </div>
+            `;
+            
+            // Add delete functionality
+            li.querySelector('.delete').addEventListener('click', function() {
+                cdList.removeChild(li);
+            });
+
+            cdList.appendChild(li);
+            cdForm.reset(); // Clear the form
+        };
+
+        // Read the uploaded image as a Data URL
+        if (coverFile) {
+            reader.readAsDataURL(coverFile);
+        }
     });
 </script>
 
